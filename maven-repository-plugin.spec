@@ -1,6 +1,6 @@
 Name:           maven-repository-plugin
 Version:        2.3.1
-Release:        2
+Release:        4
 Summary:        Plugin to create bundles of artifacts for manual uploaded to repository
 
 Group:          Development/Java
