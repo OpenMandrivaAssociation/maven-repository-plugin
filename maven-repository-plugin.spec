@@ -1,40 +1,36 @@
+%{?_javapackages_macros:%_javapackages_macros}
 Name:           maven-repository-plugin
 Version:        2.3.1
-Release:        4
+Release:        10.0%{?dist}
 Summary:        Plugin to create bundles of artifacts for manual uploaded to repository
 
-Group:          Development/Java
+
 License:        ASL 2.0
 URL:            http://maven.apache.org/plugins/maven-repository-plugin/
 Source0:        http://repo2.maven.org/maven2/org/apache/maven/plugins/%{name}/%{version}/%{name}-%{version}-source-release.zip
-
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-
+Patch0:         add_compat.patch
 BuildArch: noarch
 
-BuildRequires: java-devel >= 0:1.6.0
+BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: plexus-utils
-BuildRequires: ant-nodeps
-BuildRequires: maven2
+BuildRequires: ant
+BuildRequires: maven-local
 BuildRequires: maven-install-plugin
 BuildRequires: maven-compiler-plugin
 BuildRequires: maven-plugin-plugin
 BuildRequires: maven-resources-plugin
 BuildRequires: maven-surefire-plugin
 BuildRequires: maven-surefire-provider-junit
-BuildRequires: maven-surefire-provider-junit4
 BuildRequires: maven-plugin-testing-harness
 BuildRequires: maven-jar-plugin
 BuildRequires: maven-javadoc-plugin
 BuildRequires: jpackage-utils
-BuildRequires: junit4
+BuildRequires: junit
 BuildRequires: maven-shared-verifier
-Requires: ant-nodeps
-Requires: maven2
+Requires: ant
+Requires: maven
 Requires: jpackage-utils
 Requires: java
-Requires(post): jpackage-utils
-Requires(postun): jpackage-utils 
 
 Obsoletes: maven2-plugin-repository <= 0:2.0.8
 Provides: maven2-plugin-repository = 1:%{version}-%{release}
@@ -44,7 +40,7 @@ This plugin is used to create bundles of artifacts that
 can be uploaded to the central repository.
 
 %package javadoc
-Group:          Development/Java
+
 Summary:        Javadoc for %{name}
 Requires: jpackage-utils
 
@@ -53,61 +49,61 @@ API documentation for %{name}.
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q 
+%patch0
 
 %build
-export MAVEN_REPO_LOCAL=$(pwd)/.m2/repository
-
-#FIXME: test gets java.lang.NullPointerException
-mvn-jpp \
-        -e \
-        -Dmaven2.jpp.mode=true \
-        -Dmaven.repo.local=$MAVEN_REPO_LOCAL \
-        -Dmaven.test.failure.ignore=true \
-        install javadoc:javadoc
+%mvn_build -f
 
 %install
-rm -rf %{buildroot}
+%mvn_install
 
-# jars
-install -d -m 0755 %{buildroot}%{_javadir}
-install -m 644 target/%{name}-%{version}.jar   %{buildroot}%{_javadir}/%{name}-%{version}.jar
-
-(cd %{buildroot}%{_javadir} && for jar in *-%{version}*; \
-    do ln -sf ${jar} `echo $jar| sed "s|-%{version}||g"`; done)
-
-%add_to_maven_depmap org.apache.maven.plugins %{name} %{version} JPP %{name}
-
-# poms
-install -d -m 755 %{buildroot}%{_mavenpomdir}
-install -pm 644 pom.xml \
-    %{buildroot}%{_mavenpomdir}/JPP-%{name}.pom
-
-# javadoc
-install -d -m 0755 %{buildroot}%{_javadocdir}/%{name}-%{version}
-cp -pr target/site/api*/* %{buildroot}%{_javadocdir}/%{name}-%{version}/
-ln -s %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
-rm -rf target/site/api*
-
-%post
-%update_maven_depmap
-
-%postun
-%update_maven_depmap
-
-%clean
-rm -rf %{buildroot}
-
-%files
-%defattr(-,root,root,-)
+%files -f .mfiles
 %doc LICENSE.txt
-%{_javadir}/*
-%{_mavenpomdir}/*
-%{_mavendepmapfragdir}/*
 
-%files javadoc
-%defattr(-,root,root,-)
+%files javadoc -f .mfiles-javadoc
 %doc LICENSE.txt
-%{_javadocdir}/%{name}-%{version}
-%{_javadocdir}/%{name}
 
+%changelog
+* Mon Aug 12 2013 Alexander Kurtakov <akurtako@redhat.com> 2.3.1-10
+- Build using xmvn.
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.3.1-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.3.1-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Wed Feb 06 2013 Java SIG <java-devel@lists.fedoraproject.org> - 2.3.1-7
+- Update for https://fedoraproject.org/wiki/Fedora_19_Maven_Rebuild
+- Replace maven BuildRequires with maven-local
+
+* Thu Jul 19 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.3.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.3.1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Mon Dec 5 2011 Alexander Kurtakov <akurtako@redhat.com> 2.3.1-4
+- Fix building/working in pure maven3 environment.
+
+* Wed Jun 8 2011 Alexander Kurtakov <akurtako@redhat.com> 2.3.1-3
+- Build with maven 3.x.
+- Adapt to current guidelines.
+
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.3.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Thu Oct 14 2010 Alexander Kurtakov <akurtako@redhat.com> 2.3.1-1
+- Update to 2.3.1.
+
+* Wed Sep 15 2010 Yong Yang <yyang@redhat.com> 2.3-3
+- BR: maven-shared-verifier
+- Add dep wagon-provider-api by patch
+
+* Mon Jun 07 2010 Yong Yang <yyang@redhat.com> 2.3-2
+- Update summary due to length issue
+- Add LICENSE.txt
+
+* Fri Jun 04 2010 Yong Yang <yyang@redhat.com> 2.3-1
+- Initial package.
