@@ -6,7 +6,7 @@ Summary:        Plugin to create bundles of artifacts for manual uploaded to rep
 
 
 License:        ASL 2.0
-URL:            http://maven.apache.org/plugins/maven-repository-plugin/
+URL:            https://maven.apache.org/plugins/maven-repository-plugin/
 Source0:        http://repo2.maven.org/maven2/org/apache/maven/plugins/%{name}/%{version}/%{name}-%{version}-source-release.zip
 Patch0:         add_compat.patch
 BuildArch: noarch
